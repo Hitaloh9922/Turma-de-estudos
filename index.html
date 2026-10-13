@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turma ETE – mural de estudos</title>
+<style>
+:root {
+  --paper:#eef3f7; --grid:#d5e0ea; --card:#fff; --ink:#14213d; --muted:#55627a; --line:#c3d0de;
+  --math:#1d4ed8; --math-bg:#e3ebff; --port:#a3166b; --port-bg:#fbe4f1;
+  --tip:#ffe45c; --tip-ink:#3b3000; --ok:#167a4a; --ok-bg:#d9f3e5; --bad:#b3261e; --bad-bg:#fbe0dd;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:#0f1828; --grid:#19263b; --card:#16223a; --ink:#e8eef7; --muted:#9aa8c2; --line:#2b3b57;
+    --math:#8fb0ff; --math-bg:#1b2c57; --port:#ff9bd0; --port-bg:#4a1a38;
+    --tip:#f2d13c; --tip-ink:#2a2200; --ok:#5fd39a; --ok-bg:#12382a; --bad:#ff8a80; --bad-bg:#4a1d1a;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px; color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 17px; line-height: 1.5;
+}
+main { max-width: 860px; margin: 0 auto; padding: 32px 18px 80px; }
+h1 { font-size: clamp(1.9rem, 6vw, 2.8rem); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+h2 { font-size: 1.35rem; margin: 0 0 8px; }
+.lead { color: var(--muted); max-width: 62ch; margin: 10px 0 0; }
+.banner { margin-top: 16px; padding: 10px 14px; border-radius: 8px; background: var(--tip); color: var(--tip-ink); border: 2px solid var(--tip-ink); font-weight: 700; }
+.banner[hidden] { display: none; }
+.tabs { display: flex; gap: 6px; margin: 22px 0 16px; }
+.tab { font: inherit; font-weight: 700; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 16px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--math-bg); border-color: var(--math); color: var(--math); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.conta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.rules { background: var(--tip); color: var(--tip-ink); border: 2px solid var(--tip-ink); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
+.rules ul { margin: 6px 0 0; padding-left: 20px; }
+label.lb { display: block; font-weight: 700; margin-bottom: 4px; }
+input[type="text"], select, textarea { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%; }
+textarea { min-height: 92px; resize: vertical; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.row > * { flex: 1 1 160px; }
+button.btn { font: inherit; font-weight: 700; cursor: pointer; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 7px 14px; }
+button.btn.primary { background: var(--math); border-color: var(--math); color: #fff; }
+button.btn:disabled { opacity: .5; cursor: not-allowed; }
+button.link { font: inherit; background: none; border: 0; color: var(--math); text-decoration: underline; cursor: pointer; padding: 0 4px; }
+.muted { color: var(--muted); } .small { font-size: .9rem; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.chip { font-size: .78rem; font-weight: 700; padding: 1px 9px; border-radius: 99px; border: 1px solid currentColor; }
+.chip.dica { color: var(--tip-ink); background: var(--tip); }
+.chip.duvida { color: var(--bad); background: var(--bad-bg); }
+.chip.resolucao { color: var(--ok); background: var(--ok-bg); }
+.chip.progresso { color: var(--math); background: var(--math-bg); }
+.chip.mat { color: var(--math); background: var(--math-bg); }
+.chip.port { color: var(--port); background: var(--port-bg); }
+.chip.tema { color: var(--muted); }
+.post .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; max-width: 66ch; }
+.post img.foto { display: block; max-width: 100%; max-height: 420px; border-radius: 6px; border: 1px solid var(--line); margin: 8px 0; }
+.meta { font-size: .88rem; color: var(--muted); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+.replies { margin-top: 10px; border-left: 3px solid var(--line); padding-left: 12px; }
+.reply { margin: 8px 0; }
+.reply .body { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 64ch; }
+.empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.days { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.day { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.day.done { background: var(--ok-bg); border-color: var(--ok); }
+.day label { display: flex; gap: 8px; cursor: pointer; align-items: flex-start; }
+.day input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--ok); flex: none; }
+.bar { height: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+.day.hoje { outline: 3px solid var(--math); outline-offset: 2px; }
+.tarefa { border-top: 1px solid var(--line); padding: 10px 0; }
+.tarefa:first-of-type { border-top: 0; }
+.tarefa.feita { opacity: .6; }
+.tarefa .tt { font-weight: 700; }
+.bar > i { display: block; height: 100%; background: var(--ok); width: 0; }
+:focus-visible { outline: 3px solid var(--math); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Turma ETE: mural de estudos</h1>
+  <p class="lead">Poste dicas, tire dúvidas e mostre como resolveu um exercício, com texto e foto do caderno. Ajude a turma a chegar mais longe.</p>
+  <div class="banner" id="setup" hidden>Falta configurar o site: abra o arquivo config.js e cole o endereço (URL) e a chave do Supabase nas duas primeiras linhas. O passo a passo está no arquivo passo-a-passo.html.</div>
+  <div class="banner" id="msg" role="status" hidden></div>
+  <div class="card conta" id="conta" style="margin-top:16px"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-mural" aria-selected="true" type="button">Mural</button>
+    <button class="tab" role="tab" id="tab-prog" aria-selected="false" type="button">Meu progresso</button>
+    <button class="tab" role="tab" id="tab-tarefas" aria-selected="false" type="button">Tarefas e desafios</button>
+  </div>
+
+  <section id="sec-mural"></section>
+  <section id="sec-prog" hidden></section>
+  <section id="sec-tarefas" hidden></section>
+</main>
+
+<script src="config.js"></script>
+<script>
+const configurado = typeof SB_URL !== "undefined" && !SB_URL.includes("COLE_AQUI") && !SB_KEY.includes("COLE_AQUI");
+const BASE = (typeof SB_URL !== "undefined" ? String(SB_URL) : "").trim().replace(/\/+$/, "");
+const CHAVE = (typeof SB_KEY !== "undefined" ? String(SB_KEY) : "").trim();
+const BUCKET = "fotos";
+const PAGE = 30;
+const MATS = { mat: "Matemática", port: "Português", geral: "Geral" };
+const TIPOS = { dica: "Dica", duvida: "Dúvida", resolucao: "Resolução", progresso: "Progresso" };
+const TEMAS = {
+  mat: ["Quatro operações","Frações","Números decimais","Potenciação","Raiz quadrada","Expressões com números reais","Sistemas de medidas","Razão e proporção","Divisão proporcional","Regra de três","Porcentagem","Médias","Polinômios","Produtos notáveis","Fatoração","Radiciação","Equações do 1º grau","Sistemas lineares","Ângulos","Polígonos","Triângulos e Lei angular de Tales","Semelhança e cevianas"],
+  port: ["Ideias principais e secundárias","Gêneros e sequências discursivas","Sentido das palavras","Textualidade","Figuras de linguagem","Linguagem do texto literário","Classes gramaticais","Termos da oração","Coordenação e subordinação","Pontuação","Concordância","Regência","Formação das palavras","Norma padrão e variedades"]
+};
+const [AA, MM, DD] = (typeof DATA_INICIO !== "undefined" ? DATA_INICIO : "2026-10-13").split("-").map(Number);
+const START = new Date(AA, MM - 1, DD);
+const WD = ["dom","seg","ter","qua","qui","sex","sáb"];
+function dayDate(n) { const d = new Date(START); d.setDate(d.getDate() + n - 1); return `${WD[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`; }
+const t0 = new Date(); t0.setHours(0,0,0,0);
+const HOJE = Math.floor((t0 - START) / 86400000) + 1;
+const PADRAO = typeof DIAS_PADRAO !== "undefined" ? DIAS_PADRAO : [];
+function montarDias(over) {
+  const m = {}; (over || []).forEach(o => { m[o.id] = o; });
+  const max = Math.max(PADRAO.length, ...Object.keys(m).map(Number), 0);
+  const out = [];
+  for (let n = 1; n <= max; n++) {
+    const p = PADRAO[n - 1], o = m[n];
+    if (!p && !o) continue;
+    out.push({ n, mat: o ? o.mat : p[0], port: o ? o.port : (p ? p[1] : ""), nota: o ? (o.nota || "") : "" });
+  }
+  return out;
+}
+function rotulo(d) { return d.mat + (d.port ? " / " + d.port : ""); }
+let dias = montarDias([]);
+let desafios = [];
+
+/* ---------- utilidades ---------- */
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "checked" || k === "value" || k === "disabled" || k === "hidden") e[k] = v;
+    else if (k === "style") e.style.cssText = v;
+    else if (v !== false && v != null) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) { if (c == null || c === false) continue; e.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  return e;
+}
+function ago(iso) {
+  const t = new Date(iso).getTime(); if (!t) return "";
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 60) return "agora";
+  if (s < 3600) return `há ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `há ${Math.floor(s / 3600)} h`;
+  const d = new Date(t); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const x = [...b].map(v => v.toString(16).padStart(2, "0")).join("");
+  return `${x.slice(0,8)}-${x.slice(8,12)}-${x.slice(12,16)}-${x.slice(16,20)}-${x.slice(20)}`;
+}
+function ls(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; } catch (e) { return fallback; } }
+function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+function lsDel(key) { try { localStorage.removeItem(key); } catch (e) {} }
+
+const msgEl = document.getElementById("msg");
+let msgTimer = null;
+function aviso(t, ms = 5000) { msgEl.textContent = t; msgEl.hidden = !t; clearTimeout(msgTimer); if (t && ms) msgTimer = setTimeout(() => { msgEl.hidden = true; }, ms); }
+
+/* ---------- login com o Google (via Supabase) ---------- */
+const SESS = "turma-sessao";
+let sess = ls(SESS, null);
+(function lerRetornoDoLogin() {
+  if (!location.hash || location.hash.length < 2) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (p.get("access_token")) {
+    sess = { access: p.get("access_token"), refresh: p.get("refresh_token"), exp: Date.now() + Math.max(60, Number(p.get("expires_in") || 3600) - 60) * 1000 };
+    lsSet(SESS, sess);
+    history.replaceState(null, "", location.pathname + location.search);
+  } else if (p.get("error")) {
+    history.replaceState(null, "", location.pathname + location.search);
+    setTimeout(() => aviso("Não foi possível entrar com o Google: " + (p.get("error_description") || p.get("error")).replace(/\+/g, " "), 10000), 100);
+  }
+})();
+const logado = () => !!sess;
+function entrarGoogle() {
+  location.href = `${BASE}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.origin + location.pathname)}`;
+}
+function sairDaConta() { sess = null; lsDel(SESS); location.reload(); }
+async function tokenAtual() {
+  if (!sess) return null;
+  if (Date.now() > sess.exp) {
+    try {
+      const r = await fetch(BASE + "/auth/v1/token?grant_type=refresh_token", { method: "POST", headers: { apikey: CHAVE, "Content-Type": "application/json" }, body: JSON.stringify({ refresh_token: sess.refresh }) });
+      if (!r.ok) throw new Error("renovar");
+      const j = await r.json();
+      sess = { access: j.access_token, refresh: j.refresh_token, exp: Date.now() + Math.max(60, (j.expires_in || 3600) - 60) * 1000 };
+      lsSet(SESS, sess);
+    } catch (e) { sess = null; lsDel(SESS); aviso("Sua sessão expirou. Entre com o Google de novo."); desenharConta(); return null; }
+  }
+  return sess.access;
+}
+function desenharConta() {
+  const box = document.getElementById("conta"); box.innerHTML = "";
+  if (!configurado) { box.hidden = true; return; }
+  if (logado()) {
+    box.append(h("span", null, h("b", { text: "Você entrou com o Google. " }), h("span", { class: "muted small", text: "Seu e-mail fica guardado só para o administrador evitar abusos." })),
+      h("button", { class: "btn", type: "button", text: "Sair", onclick: sairDaConta }));
+  } else {
+    box.append(h("span", null, h("b", { text: "Para postar, responder, curtir e denunciar, entre com o Google. " }), h("span", { class: "muted small", text: "Ler o mural não precisa de login." })),
+      h("button", { class: "btn primary", type: "button", text: "Entrar com o Google", onclick: entrarGoogle }));
+  }
+}
+
+/* ---------- comunicação com o Supabase (sem bibliotecas) ---------- */
+async function api(path, opts) {
+  const o = opts || {};
+  const t = await tokenAtual();
+  const c = Object.assign({ apikey: CHAVE }, o.headers || {});
+  if (t) c.Authorization = "Bearer " + t; else if (CHAVE.startsWith("eyJ")) c.Authorization = "Bearer " + CHAVE;
+  const r = await fetch(BASE + path, Object.assign({}, o, { headers: c }));
+  if (!r.ok) { const tx = await r.text().catch(() => ""); const e = new Error(`${r.status} ${tx.slice(0, 160)}`); e.status = r.status; throw e; }
+  const ct = r.headers.get("content-type") || "";
+  return ct.includes("json") ? r.json() : null;
+}
+const JSONH = { "Content-Type": "application/json", Prefer: "return=minimal" };
+const fotoUrl = nome => `${BASE}/storage/v1/object/public/${BUCKET}/${nome}`;
+function falhaEscrita(e) {
+  if (e && (e.status === 401 || e.status === 403)) aviso("Não foi possível publicar. Sua sessão pode ter expirado ou sua conta foi bloqueada. Tente sair e entrar de novo.", 9000);
+  else aviso("Não deu para fazer isso agora. Tente de novo em instantes.");
+}
+
+/* ---------- estado local deste aparelho ---------- */
+let apelido = ls("turma-apelido", "");
+let curtidas = new Set(ls("turma-curtidas", []));
+let denunciados = new Set(ls("turma-denuncias", []));
+let diasFeitos = ls("turma-dias", {});
+let ultimoPost = 0;
+
+const state = { posts: [], respostas: [], likes: {}, offset: 0, fim: false };
+const filt = { tipo: "", mat: "", semResp: false };
+const drafts = {};
+const abertos = new Set();
+
+/* ---------- abas ---------- */
+function aba(t) {
+  for (const x of ["mural", "prog", "tarefas"]) {
+    document.getElementById("tab-" + x).setAttribute("aria-selected", String(x === t));
+    document.getElementById("sec-" + x).hidden = x !== t;
+  }
+}
+document.getElementById("tab-mural").addEventListener("click", () => aba("mural"));
+document.getElementById("tab-prog").addEventListener("click", () => aba("prog"));
+document.getElementById("tab-tarefas").addEventListener("click", () => aba("tarefas"));
+
+/* ---------- mural ---------- */
+const secMural = document.getElementById("sec-mural");
+let feedEl, listaEl, maisEl;
+
+function montarMural() {
+  secMural.innerHTML = "";
+  secMural.append(h("div", { class: "rules" }, h("b", { text: "Regras da turma" }),
+    h("ul", null,
+      h("li", { text: "Respeite todo mundo. Aqui ninguém é bobo por perguntar." }),
+      h("li", { text: "Explique o caminho, não só o resultado: assim todos aprendem." }),
+      h("li", { text: "Foto só de caderno ou exercício. Nada de rosto, nome completo, telefone, endereço ou redes sociais." }),
+      h("li", { text: "Viu algo inadequado? Toque em Denunciar. Com 3 denúncias o post some até ser analisado." }))));
+  secMural.append(montarCompositor());
+  secMural.append(montarFiltros());
+  feedEl = h("div");
+  listaEl = h("div");
+  maisEl = h("div", { style: "text-align:center;margin:8px 0" });
+  feedEl.append(listaEl, maisEl);
+  secMural.append(feedEl);
+}
+
+function montarCompositor() {
+  const card = h("div", { class: "card" }, h("h2", { text: "Novo post" }));
+  if (!logado()) {
+    card.append(h("p", { class: "muted", text: "Entre com o Google para publicar. Assim sabemos que é gente da turma e evitamos abusos. O mural mostra só o seu apelido." }),
+      h("button", { class: "btn primary", type: "button", text: "Entrar com o Google", onclick: entrarGoogle }));
+    return card;
+  }
+  const nick = h("input", { type: "text", id: "c-nick", maxlength: "20", value: apelido, placeholder: "Ex.: Duda", autocomplete: "off" });
+  nick.addEventListener("change", () => { apelido = nick.value.trim().slice(0, 20); lsSet("turma-apelido", apelido); });
+  const selTipo = h("select", { id: "c-tipo" }, ["dica", "duvida", "resolucao"].map(k => h("option", { value: k, text: TIPOS[k] })));
+  const selMat = h("select", { id: "c-mat" }, ["mat", "port"].map(k => h("option", { value: k, text: MATS[k] })));
+  const selTema = h("select", { id: "c-tema" });
+  const preencher = () => { selTema.innerHTML = ""; TEMAS[selMat.value].forEach(t => selTema.append(h("option", { value: t, text: t }))); };
+  selMat.addEventListener("change", preencher); preencher();
+  const dicas = { dica: "Compartilhe um macete ou um jeito mais rápido de fazer.", duvida: "Diga onde você travou e o que já tentou.", resolucao: "Explique o passo a passo de um exercício, não só a resposta." };
+  const dica = h("p", { class: "muted small" });
+  const setDica = () => { dica.textContent = dicas[selTipo.value]; };
+  selTipo.addEventListener("change", setDica); setDica();
+  const ta = h("textarea", { id: "c-texto", maxlength: "600", placeholder: "Escreva aqui (até 600 letras)" });
+  const cont = h("span", { class: "muted small", text: "0/600" });
+  ta.addEventListener("input", () => { cont.textContent = `${ta.value.length}/600`; });
+  const arq = h("input", { type: "file", id: "c-foto", accept: "image/*" });
+  const prev = h("img", { class: "foto", alt: "Pré-visualização da foto", hidden: true, style: "max-height:160px" });
+  arq.addEventListener("change", () => {
+    if (arq.files && arq.files[0]) { prev.src = URL.createObjectURL(arq.files[0]); prev.hidden = false; } else { prev.hidden = true; }
+  });
+  const hp = h("div", { class: "hp", "aria-hidden": "true" }, h("input", { type: "text", name: "website", tabindex: "-1", autocomplete: "off", id: "c-hp" }));
+  const btn = h("button", { class: "btn primary", type: "button", text: "Publicar" });
+  const estado = h("span", { class: "muted small" });
+  btn.addEventListener("click", async () => {
+    if (document.getElementById("c-hp").value) return;
+    apelido = nick.value.trim().slice(0, 20); lsSet("turma-apelido", apelido);
+    const texto = ta.value.trim();
+    if (apelido.length < 2) { estado.textContent = "Escolha um apelido com pelo menos 2 letras."; return; }
+    if (texto.length < 3) { estado.textContent = "Escreva um pouco mais."; return; }
+    if (Date.now() - ultimoPost < 20000) { estado.textContent = "Calma! Espere alguns segundos para postar de novo."; return; }
+    btn.disabled = true; estado.textContent = "Publicando…";
+    try {
+      let nomeFoto = null;
+      if (arq.files && arq.files[0]) {
+        estado.textContent = "Preparando a foto…";
+        const blob = await comprimir(arq.files[0]);
+        nomeFoto = uuid() + ".jpg";
+        await api(`/storage/v1/object/${BUCKET}/${nomeFoto}`, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
+      }
+      await api("/rest/v1/posts", { method: "POST", headers: JSONH, body: JSON.stringify({ tipo: selTipo.value, materia: selMat.value, tema: selTema.value, apelido, texto: texto.slice(0, 600), foto: nomeFoto }) });
+      ultimoPost = Date.now();
+      ta.value = ""; cont.textContent = "0/600"; arq.value = ""; prev.hidden = true; estado.textContent = "Publicado!";
+      await carregar(true);
+    } catch (e) { estado.textContent = ""; falhaEscrita(e); }
+    btn.disabled = false;
+  });
+  card.append(
+    h("div", { class: "row" },
+      h("div", null, h("label", { class: "lb", for: "c-nick", text: "Seu apelido" }), nick),
+      h("div", null, h("label", { class: "lb", for: "c-tipo", text: "Tipo" }), selTipo),
+      h("div", null, h("label", { class: "lb", for: "c-mat", text: "Matéria" }), selMat),
+      h("div", null, h("label", { class: "lb", for: "c-tema", text: "Assunto" }), selTema)),
+    h("p", { class: "muted small", text: "Use só apelido ou primeiro nome." }),
+    dica,
+    h("label", { class: "lb", for: "c-texto", text: "Texto" }), ta,
+    h("div", { style: "margin-top:8px" }, h("label", { class: "lb", for: "c-foto", text: "Foto do caderno ou exercício (opcional)" }), arq, prev),
+    hp,
+    h("div", { class: "row", style: "margin-top:10px;align-items:center" }, h("div", { style: "flex:0 0 auto" }, btn), h("div", null, cont, " ", estado))
+  );
+  return card;
+}
+
+function montarFiltros() {
+  return h("div", { class: "card row" },
+    h("div", null, h("label", { class: "lb", for: "f-tipo", text: "Mostrar" }),
+      h("select", { id: "f-tipo", onchange: e => { filt.tipo = e.target.value; desenhar(); } }, h("option", { value: "", text: "Todos os tipos" }), Object.entries(TIPOS).map(([k, v]) => h("option", { value: k, text: v })))),
+    h("div", null, h("label", { class: "lb", for: "f-mat", text: "Matéria" }),
+      h("select", { id: "f-mat", onchange: e => { filt.mat = e.target.value; desenhar(); } }, h("option", { value: "", text: "Todas" }), Object.entries(MATS).map(([k, v]) => h("option", { value: k, text: v })))),
+    h("label", { style: "display:flex;gap:8px;align-items:center;flex:1 1 200px;cursor:pointer" }, h("input", { type: "checkbox", onchange: e => { filt.semResp = e.target.checked; desenhar(); } }), "Só dúvidas sem resposta"),
+    h("div", { style: "flex:0 0 auto" }, h("button", { class: "btn", type: "button", text: "Atualizar", onclick: () => carregar(true) })));
+}
+
+/* ---------- foto: reduz o tamanho antes de enviar ---------- */
+async function comprimir(file) {
+  const img = await new Promise((res, rej) => {
+    const im = new Image(), u = URL.createObjectURL(file);
+    im.onload = () => { URL.revokeObjectURL(u); res(im); };
+    im.onerror = () => rej(new Error("imagem"));
+    im.src = u;
+  });
+  let max = 1280, q = 0.75, blob = null;
+  for (let i = 0; i < 5; i++) {
+    const sc = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    blob = await new Promise(r => c.toBlob(r, "image/jpeg", q));
+    if (blob && blob.size <= 900 * 1024) break;
+    max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.08);
+  }
+  if (!blob || blob.size > 1048576) throw new Error("grande");
+  return blob;
+}
+
+/* ---------- carregar dados ---------- */
+async function carregar(reiniciar) {
+  if (!configurado) return;
+  try {
+    if (reiniciar) { state.offset = 0; state.fim = false; state.posts = []; }
+    const novos = await api(`/rest/v1/posts?select=*&order=created_at.desc&limit=${PAGE}&offset=${state.offset}`);
+    state.posts = state.posts.concat(novos);
+    state.offset += novos.length;
+    if (novos.length < PAGE) state.fim = true;
+    const ids = state.posts.map(p => p.id);
+    if (ids.length) {
+      const lista = ids.join(",");
+      const [rs, lk] = await Promise.all([
+        api(`/rest/v1/respostas?select=*&post_id=in.(${lista})&order=created_at.asc&limit=1000`),
+        api(`/rest/v1/curtidas_contagem?select=post_id,total&post_id=in.(${lista})`)
+      ]);
+      state.respostas = rs;
+      state.likes = {}; lk.forEach(x => { state.likes[x.post_id] = x.total; });
+    } else { state.respostas = []; state.likes = {}; }
+    desenhar();
+  } catch (e) {
+    aviso("Não consegui carregar o mural agora. Confira a configuração ou tente atualizar.", 8000);
+  }
+}
+
+/* ---------- desenhar o feed ---------- */
+function desenhar() {
+  if (!listaEl) return;
+  listaEl.innerHTML = "";
+  let posts = state.posts.slice();
+  if (filt.tipo) posts = posts.filter(p => p.tipo === filt.tipo);
+  if (filt.mat) posts = posts.filter(p => p.materia === filt.mat);
+  if (filt.semResp) posts = posts.filter(p => p.tipo === "duvida" && !state.respostas.some(r => r.post_id === p.id));
+  if (!posts.length) listaEl.append(h("div", { class: "empty", text: state.posts.length ? "Nenhum post com esses filtros." : "Ainda não há posts. Que tal compartilhar a primeira dica?" }));
+  posts.forEach(p => listaEl.append(cartao(p)));
+  maisEl.innerHTML = "";
+  if (!state.fim && state.posts.length) maisEl.append(h("button", { class: "btn", type: "button", text: "Carregar posts mais antigos", onclick: () => carregar(false) }));
+}
+
+function botaoDenunciar(tipo, id) {
+  const chave = tipo + ":" + id;
+  if (denunciados.has(chave)) return h("span", { class: "muted small", text: "Denunciado" });
+  const b = h("button", { class: "link", type: "button", text: "Denunciar" });
+  let certo = false;
+  b.addEventListener("click", async () => {
+    if (!logado()) { aviso("Entre com o Google para denunciar."); return; }
+    if (!certo) { certo = true; b.textContent = "Toque de novo para confirmar"; setTimeout(() => { certo = false; b.textContent = "Denunciar"; }, 4000); return; }
+    try {
+      await api("/rest/v1/rpc/denunciar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ p_tipo: tipo, p_alvo: id }) });
+      denunciados.add(chave); lsSet("turma-denuncias", [...denunciados]);
+      aviso("Obrigado! Vamos analisar essa denúncia.");
+      desenhar();
+    } catch (e) { aviso("Não foi possível denunciar agora."); }
+  });
+  return b;
+}
+
+function cartao(p) {
+  const reps = state.respostas.filter(r => r.post_id === p.id);
+  const total = state.likes[p.id] || 0;
+  const jaCurtiu = curtidas.has(p.id);
+  const card = h("article", { class: "card post" });
+  card.append(h("div", { class: "chips" },
+    h("span", { class: "chip " + p.tipo, text: TIPOS[p.tipo] || "Post" }),
+    h("span", { class: "chip " + (p.materia === "geral" ? "tema" : p.materia), text: MATS[p.materia] || "" }),
+    p.tema && p.materia !== "geral" ? h("span", { class: "chip tema", text: p.tema }) : null));
+  card.append(h("p", { class: "body", text: p.texto || "" }));
+  if (p.foto && /^[a-f0-9-]{36}\.jpg$/.test(p.foto)) {
+    const url = fotoUrl(p.foto);
+    card.append(h("a", { href: url, target: "_blank", rel: "noopener" }, h("img", { class: "foto", src: url, alt: "Foto enviada por " + (p.apelido || "aluno"), loading: "lazy" })));
+  }
+  card.append(h("div", { class: "meta", text: `${p.apelido || "Aluno"} · ${ago(p.created_at)}` }));
+  const acoes = h("div", { class: "actions" });
+  acoes.append(h("button", { class: "btn", type: "button", disabled: jaCurtiu, text: `${jaCurtiu ? "Ajudou ✓" : "Ajudou"} · ${total}`, onclick: async () => {
+    if (!logado()) { aviso("Entre com o Google para curtir."); return; }
+    curtidas.add(p.id); lsSet("turma-curtidas", [...curtidas]);
+    state.likes[p.id] = (state.likes[p.id] || 0) + 1; desenhar();
+    try { await api("/rest/v1/curtidas", { method: "POST", headers: JSONH, body: JSON.stringify({ post_id: p.id }) }); } catch (e) {}
+  } }));
+  acoes.append(h("button", { class: "btn", type: "button", text: `${abertos.has(p.id) ? "Fechar respostas" : "Responder"} (${reps.length})`, onclick: () => { if (abertos.has(p.id)) abertos.delete(p.id); else abertos.add(p.id); desenhar(); } }));
+  acoes.append(botaoDenunciar("post", p.id));
+  card.append(acoes);
+  if (abertos.has(p.id)) {
+    const box = h("div", { class: "replies" });
+    reps.forEach(r => box.append(h("div", { class: "reply" },
+      h("div", { class: "body", text: r.texto || "" }),
+      h("div", { class: "meta" }, `${r.apelido || "Aluno"} · ${ago(r.created_at)} `, botaoDenunciar("resposta", r.id)))));
+    if (!logado()) {
+      box.append(h("p", { class: "muted small" }, "Para responder, ", h("button", { class: "link", type: "button", text: "entre com o Google", onclick: entrarGoogle }), "."));
+      card.append(box); return card;
+    }
+    const ta = h("textarea", { maxlength: "600", "aria-label": "Escreva uma resposta", placeholder: p.tipo === "duvida" ? "Explique como você resolveria" : "Comente ou complemente", style: "min-height:60px" });
+    ta.value = drafts[p.id] || "";
+    ta.addEventListener("input", () => { drafts[p.id] = ta.value; });
+    const b = h("button", { class: "btn", type: "button", text: "Enviar resposta" });
+    const st = h("span", { class: "muted small" });
+    b.addEventListener("click", async () => {
+      const t = ta.value.trim();
+      if (apelido.length < 2) { st.textContent = "Escolha um apelido no formulário do Mural antes de responder."; return; }
+      if (t.length < 2) { st.textContent = "Escreva um pouco mais."; return; }
+      b.disabled = true; st.textContent = "Enviando…";
+      try {
+        await api("/rest/v1/respostas", { method: "POST", headers: JSONH, body: JSON.stringify({ post_id: p.id, apelido, texto: t.slice(0, 600) }) });
+        delete drafts[p.id];
+        const nova = await api(`/rest/v1/respostas?select=*&post_id=eq.${p.id}&order=created_at.asc&limit=200`);
+        state.respostas = state.respostas.filter(r => r.post_id !== p.id).concat(nova);
+        desenhar();
+      } catch (e) { st.textContent = ""; falhaEscrita(e); b.disabled = false; }
+    });
+    box.append(h("div", { style: "margin-top:8px" }, ta, h("div", { style: "margin-top:6px" }, b, " ", st)));
+    card.append(box);
+  }
+  return card;
+}
+
+/* ---------- meu progresso (fica só neste aparelho) ---------- */
+const secProg = document.getElementById("sec-prog");
+function feitos() { return Object.keys(diasFeitos).filter(k => diasFeitos[k]).length; }
+function desenharProg() {
+  secProg.innerHTML = "";
+  const n = feitos(), total = dias.length;
+  const cardTop = h("div", { class: "card" },
+    h("h2", { text: `${n} de ${total} dias concluídos` }),
+    h("div", { class: "bar" }, h("i", { style: `width:${total ? Math.round(n / total * 100) : 0}%` })),
+    h("p", { class: "muted small", text: "Seu progresso fica salvo só neste aparelho. Quer mostrar para a turma? Use o botão abaixo para criar um post no mural." }));
+  const st = h("span", { class: "muted small" });
+  const bt = h("button", { class: "btn primary", type: "button", text: "Compartilhar meu progresso no mural" });
+  bt.addEventListener("click", async () => {
+    if (!configurado) return;
+    if (!logado()) { st.textContent = "Entre com o Google primeiro."; return; }
+    if (apelido.length < 2) { st.textContent = "Escolha um apelido na aba Mural antes."; return; }
+    if (!n) { st.textContent = "Marque pelo menos um dia concluído."; return; }
+    if (Date.now() - ultimoPost < 20000) { st.textContent = "Espere alguns segundos."; return; }
+    const ultimo = Math.max(...Object.keys(diasFeitos).filter(k => diasFeitos[k]).map(Number));
+    const dUlt = dias.find(d => d.n === ultimo);
+    bt.disabled = true; st.textContent = "Publicando…";
+    try {
+      await api("/rest/v1/posts", { method: "POST", headers: JSONH, body: JSON.stringify({ tipo: "progresso", materia: "geral", tema: "Progresso", apelido, texto: `Concluí ${n} de ${total} dias do cronograma. Último dia: dia ${ultimo}${dUlt ? " (" + rotulo(dUlt) + ")" : ""}.`.slice(0, 600) }) });
+      ultimoPost = Date.now(); st.textContent = "Publicado no mural!"; await carregar(true);
+    } catch (e) { st.textContent = ""; falhaEscrita(e); }
+    bt.disabled = false;
+  });
+  cardTop.append(h("div", { style: "margin-top:8px" }, bt, " ", st));
+  secProg.append(cardTop);
+  const grade = h("div", { class: "days" });
+  dias.forEach(d => {
+    const ok = !!diasFeitos[d.n];
+    grade.append(h("div", { class: "day" + (ok ? " done" : "") + (d.n === HOJE ? " hoje" : "") },
+      h("label", null,
+        h("input", { type: "checkbox", checked: ok, onchange: e => { if (e.target.checked) diasFeitos[d.n] = true; else delete diasFeitos[d.n]; lsSet("turma-dias", diasFeitos); desenharProg(); } }),
+        h("span", null, h("b", { text: `Dia ${d.n} · ${dayDate(d.n)}${d.n === HOJE ? " (hoje)" : ""}` }), h("br"), rotulo(d), d.nota ? [h("br"), h("i", { class: "muted", text: d.nota })] : null))));
+  });
+  secProg.append(grade);
+}
+
+/* ---------- tarefas e desafios (criados pelo admin) ---------- */
+const secTarefas = document.getElementById("sec-tarefas");
+let tarefasFeitas = new Set(ls("turma-tarefas", []));
+function fmtData(iso) { if (!iso) return ""; const [y, m, d] = iso.split("-"); return `${d}/${m}`; }
+function desenharTarefas() {
+  secTarefas.innerHTML = "";
+  if (!configurado) { secTarefas.append(h("div", { class: "empty", text: "As tarefas aparecem quando o site estiver configurado." })); return; }
+  if (!desafios.length) { secTarefas.append(h("div", { class: "empty", text: "Ainda não há tarefas nem desafios. Fique de olho: a pessoa que cuida do site vai colocar por aqui." })); return; }
+  const grupos = [];
+  const hoje = desafios.filter(x => x.dia === HOJE);
+  if (hoje.length) grupos.push([`Hoje (dia ${HOJE})`, hoje]);
+  const gerais = desafios.filter(x => x.dia == null);
+  if (gerais.length) grupos.push(["Para qualquer dia", gerais]);
+  const porDia = {};
+  desafios.filter(x => x.dia != null && x.dia !== HOJE).forEach(x => { (porDia[x.dia] = porDia[x.dia] || []).push(x); });
+  Object.keys(porDia).map(Number).sort((a, b) => a - b).forEach(k => grupos.push([`Dia ${k} · ${dayDate(k)}`, porDia[k]]));
+  grupos.forEach(([titulo, lista]) => {
+    const box = h("div", { class: "card" }, h("h2", { text: titulo }));
+    lista.forEach(x => {
+      const feito = tarefasFeitas.has(x.id);
+      box.append(h("div", { class: "tarefa" + (feito ? " feita" : "") },
+        h("div", { class: "chips" },
+          h("span", { class: "chip " + (x.tipo === "desafio" ? "duvida" : "progresso"), text: x.tipo === "desafio" ? "Desafio" : "Tarefa" }),
+          x.prazo ? h("span", { class: "chip tema", text: "Prazo: " + fmtData(x.prazo) }) : null),
+        h("div", { class: "tt", text: x.titulo }),
+        x.descricao ? h("p", { class: "body", text: x.descricao }) : null,
+        h("div", { class: "actions" },
+          h("label", { style: "display:flex;gap:8px;align-items:center;cursor:pointer" },
+            h("input", { type: "checkbox", checked: feito, onchange: e => { if (e.target.checked) tarefasFeitas.add(x.id); else tarefasFeitas.delete(x.id); lsSet("turma-tarefas", [...tarefasFeitas]); desenharTarefas(); } }),
+            "Já fiz"),
+          x.tipo === "desafio" ? h("button", { class: "btn", type: "button", text: "Responder no mural", onclick: () => {
+            aba("mural");
+            if (!logado()) { aviso("Entre com o Google para responder o desafio no mural."); return; }
+            const tipo = document.getElementById("c-tipo"), tx = document.getElementById("c-texto");
+            if (tipo) tipo.value = "resolucao";
+            if (tx) { tx.value = `Desafio: ${x.titulo}\n`; tx.dispatchEvent(new Event("input")); tx.focus(); }
+          } }) : null)));
+    });
+    secTarefas.append(box);
+  });
+}
+
+/* ---------- dias e desafios vindos do banco ---------- */
+async function carregarExtras() {
+  if (!configurado) return;
+  try {
+    const [dd, ds] = await Promise.all([
+      api("/rest/v1/dias?select=*&order=id.asc&limit=100"),
+      api("/rest/v1/desafios?select=*&order=created_at.desc&limit=300")
+    ]);
+    dias = montarDias(dd); desafios = ds;
+  } catch (e) { /* se as tabelas ainda não existem, usa os dias padrão */ }
+  desenharProg(); desenharTarefas();
+}
+
+/* ---------- início ---------- */
+desenharConta();
+montarMural();
+desenharProg();
+desenharTarefas();
+if (!configurado) document.getElementById("setup").hidden = false;
+else { carregar(true); carregarExtras(); }
+</script>
+</body>
+</html>
